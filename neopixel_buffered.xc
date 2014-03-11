@@ -5,6 +5,7 @@
 
 #include <xs1.h>
 #include <timer.h>
+#include <stdint.h>
 
 
 // length of the strip(s)
@@ -14,8 +15,8 @@
 // ------------------------------------------------------------
 // grbColor - convert separate R,G,B into a neopixel color word
 //
-unsigned int grbColor(unsigned char r, unsigned char g, unsigned char b) {
-    return ((unsigned int)g << 16) | ((unsigned int)r <<  8) | b;
+uint32_t grbColor(uint8_t r, uint8_t g, uint8_t b) {
+    return ((uint32_t)g << 16) | ((uint32_t)r <<  8) | b;
 }
 
 
@@ -23,7 +24,7 @@ unsigned int grbColor(unsigned char r, unsigned char g, unsigned char b) {
 // wheel - input a value 0 to 255 to get a color value.
 //         The colors are a transition r - g - b - back to r
 //
-unsigned int wheel(unsigned char wheelPos) {
+uint32_t wheel(uint8_t wheelPos) {
     if ( wheelPos < 85 ) {
         return grbColor(wheelPos * 3, 255 - wheelPos * 3, 0);
     } else if ( wheelPos < 170 ) {
@@ -39,19 +40,18 @@ unsigned int wheel(unsigned char wheelPos) {
 // ---------------------------------------------------------
 // neopixel_led_driver - output driver for one neopixel strip
 //
-void neopixel_led_driver(port neo, unsigned int (&colors)[]) {
-    const unsigned int delay_third = 42;
-    unsigned int delay_count;
-    unsigned int color_shift;
-    unsigned int bit;
+void neopixel_led_driver(port neo, uint32_t (&colors)[]) {
+    const uint32_t delay_third = 42;
+    uint32_t delay_count;
+    uint32_t bit;
 
     // beginning of strip, resync counter
     neo <: 0 @ delay_count;
     delay_count += delay_third;
 
-    for ( unsigned int pixel=0; pixel<LEDS; ++pixel ) {
-        color_shift = colors[pixel];
-        unsigned int bit_count = 24;
+    for ( uint32_t pixel=0; pixel<LEDS; ++pixel ) {
+        uint32_t color_shift = colors[pixel];
+        uint32_t bit_count = 24;
         while (bit_count--) {
             // output low->high transition
             delay_count += delay_third;
@@ -75,17 +75,15 @@ void neopixel_led_driver(port neo, unsigned int (&colors)[]) {
 // ---------------------------------------------------------------
 // blinky_task - rainbow cycle pattern from pjrc and / or adafruit
 //
-void blinky_task(port neo, unsigned int strip) {
-    unsigned int colors[LEDS];
+void blinky_task(port neo, uint32_t strip) {
+    uint32_t colors[LEDS];
     timer tick;
-    unsigned int next_pass;
-    unsigned int loop, outer;
+    uint32_t next_pass;
 
     while (1) {
-        for ( outer=0; outer<256; ++outer) {
+        for ( uint32_t outer=0; outer<256; ++outer) {
             // cycle of all colors on wheel
-            for ( loop=0; loop<LEDS; ++loop) {
-                // emit data to the driver
+            for ( uint32_t loop=0; loop<LEDS; ++loop) {
                 colors[loop] = wheel(( (loop*256/LEDS) + outer) & 255);
             }
 
@@ -105,15 +103,14 @@ void blinky_task(port neo, unsigned int strip) {
 // main - xCore startKIT NeoPixel blinky test
 //
 port out_pin[8] = {
-    // j7.1, j7.2, j7.3, j7.4
+    // j7.1, j7.2, j7.3, j7.4, j7.23, j7.21, j7.20, j7.19
     XS1_PORT_1F, XS1_PORT_1H, XS1_PORT_1G, XS1_PORT_1E,
-    // j7.23, j7.21, j7.20, j7.19
     XS1_PORT_1P, XS1_PORT_1O, XS1_PORT_1I, XS1_PORT_1L
 };
 int main() {
 
     par {
-        // 8 led strips
+        // 8 tasks, 8 cores, drive 8 led strips with differing patterns
         blinky_task(out_pin[0], 0);
         blinky_task(out_pin[1], 1);
         blinky_task(out_pin[2], 2);
