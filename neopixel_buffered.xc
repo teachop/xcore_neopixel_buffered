@@ -11,12 +11,65 @@
 // length of the strip(s)
 #define LEDS 60
 
+// microseconds it takes to write to the strip
+#define LED_WRITE_TIME (30*LEDS + (LEDS>>2) + 51)
 
-// ------------------------------------------------------------
-// grbColor - convert separate R,G,B into a neopixel color word
+// neopixel driver interface sort of like Adafruit library
+interface neopixel_if {
+    void show(void);
+    void setPixelColor(uint32_t index, uint32_t color);
+    void setPixelColorRGB(uint32_t index, uint8_t red, uint8_t green, uint8_t blue);
+    //void setBrightness(uint8_t bright);
+};
+
+
+// ---------------------------------------------------------
+// neopixel_led_task - output driver for one neopixel strip
 //
-uint32_t grbColor(uint8_t r, uint8_t g, uint8_t b) {
-    return ((uint32_t)g << 16) | ((uint32_t)r <<  8) | b;
+[[combinable]]
+void neopixel_led_task(port neo, interface neopixel_if server dvr) {
+    uint32_t colors[LEDS];
+    const uint32_t delay_third = 42;
+    uint32_t delay_count;
+    uint32_t bit;
+
+    while( 1 ) {
+        select {
+        case dvr.setPixelColor(uint32_t index, uint32_t color):
+            if ( LEDS > index ) {
+                colors[index] = color;
+            }
+            break;
+        case dvr.setPixelColorRGB(uint32_t index, uint8_t r, uint8_t g, uint8_t b):
+            if ( LEDS > index ) {
+                colors[index] = ((uint32_t)g << 16) | ((uint32_t)r <<  8) | b;
+            }
+            break;
+        case dvr.show():
+            // beginning of strip, resync counter
+            neo <: 0 @ delay_count;
+            delay_count += delay_third;
+            for ( uint32_t pixel=0; pixel<LEDS; ++pixel ) {
+                uint32_t color_shift = colors[pixel];
+                uint32_t bit_count = 24;
+                while (bit_count--) {
+                    // output low->high transition
+                    delay_count += delay_third;
+                    neo @ delay_count <: 1;
+                    // output high->data transition
+                    bit = (color_shift & 0x800000)? 1 : 0;
+                    color_shift <<=1;
+                    delay_count += delay_third;
+                    neo @ delay_count <: bit;
+                    // output data->low transition
+                    delay_count += delay_third;
+                    neo @ delay_count <: 0;
+                }
+            }
+            break;
+        }
+    }
+
 }
 
 
@@ -24,76 +77,43 @@ uint32_t grbColor(uint8_t r, uint8_t g, uint8_t b) {
 // wheel - input a value 0 to 255 to get a color value.
 //         The colors are a transition r - g - b - back to r
 //
-uint32_t wheel(uint8_t wheelPos) {
+{uint8_t, uint8_t, uint8_t} wheel(uint8_t wheelPos) {
     if ( wheelPos < 85 ) {
-        return grbColor(wheelPos * 3, 255 - wheelPos * 3, 0);
+        return {wheelPos*3, 255-wheelPos*3, 0};
     } else if ( wheelPos < 170 ) {
         wheelPos -= 85;
-        return grbColor(255 - wheelPos * 3, 0, wheelPos * 3);
+        return {255-wheelPos*3, 0, wheelPos*3};
     } else {
         wheelPos -= 170;
-        return grbColor(0, wheelPos * 3, 255 - wheelPos * 3);
+        return {0, wheelPos*3, 255-wheelPos*3};
     }
-}
-
-
-// ---------------------------------------------------------
-// neopixel_led_driver - output driver for one neopixel strip
-//
-void neopixel_led_driver(port neo, uint32_t (&colors)[]) {
-    const uint32_t delay_third = 42;
-    uint32_t delay_count;
-    uint32_t bit;
-
-    // beginning of strip, resync counter
-    neo <: 0 @ delay_count;
-    delay_count += delay_third;
-
-    for ( uint32_t pixel=0; pixel<LEDS; ++pixel ) {
-        uint32_t color_shift = colors[pixel];
-        uint32_t bit_count = 24;
-        while (bit_count--) {
-            // output low->high transition
-            delay_count += delay_third;
-            neo @ delay_count <: 1;
-
-            // output high->data transition
-            bit = (color_shift & 0x800000)? 1 : 0;
-            color_shift <<=1;
-            delay_count += delay_third;
-            neo @ delay_count <: bit;
-
-            // output data->low transition
-            delay_count += delay_third;
-            neo @ delay_count <: 0;
-        }
-    }
-
 }
 
 
 // ---------------------------------------------------------------
 // blinky_task - rainbow cycle pattern from pjrc and / or adafruit
 //
-void blinky_task(port neo, uint32_t strip) {
-    uint32_t colors[LEDS];
+[[combinable]]
+void blinky_task(uint32_t strip, interface neopixel_if client dvr) {
+    uint8_t outer = 0;
+    uint8_t r,g,b;
     timer tick;
     uint32_t next_pass;
+    tick :> next_pass;
 
     while (1) {
-        for ( uint32_t outer=0; outer<256; ++outer) {
+        select {
+        case tick when timerafter(next_pass) :> void:
+            next_pass += (LED_WRITE_TIME + strip*1000)*100;
+            outer++;
             // cycle of all colors on wheel
-            for ( uint32_t loop=0; loop<LEDS; ++loop) {
-                colors[loop] = wheel(( (loop*256/LEDS) + outer) & 255);
+            for ( uint32_t index=0; index<LEDS; ++index) {
+                {r,g,b} = wheel(( (index*256/LEDS) + outer) & 255);
+                dvr.setPixelColorRGB(index, r,g,b);
             }
-
             // write to the strip
-            neopixel_led_driver(neo, colors);
-
-            // wait a bit, must allow strip to latch at least
-            tick :> next_pass;
-            next_pass += (50+strip*500)*100;
-            tick when timerafter(next_pass) :> void;
+            dvr.show();
+            break;
         }
     }
 }
@@ -108,17 +128,42 @@ port out_pin[8] = {
     XS1_PORT_1P, XS1_PORT_1O, XS1_PORT_1I, XS1_PORT_1L
 };
 int main() {
+    interface neopixel_if neo_driver[8];
 
     par {
-        // 8 tasks, 8 cores, drive 8 led strips with differing patterns
-        blinky_task(out_pin[0], 0);
-        blinky_task(out_pin[1], 1);
-        blinky_task(out_pin[2], 2);
-        blinky_task(out_pin[3], 3);
-        blinky_task(out_pin[4], 4);
-        blinky_task(out_pin[5], 5);
-        blinky_task(out_pin[6], 6);
-        blinky_task(out_pin[7], 7);
+        // 16 tasks, 8 cores, drive 8 led strips with differing patterns
+        [[combine]] par {
+            neopixel_led_task(out_pin[0], neo_driver[0]);
+            blinky_task(0, neo_driver[0] );
+        }
+        [[combine]] par {
+            neopixel_led_task(out_pin[1], neo_driver[1]);
+            blinky_task(1, neo_driver[1] );
+        }
+        [[combine]] par {
+            neopixel_led_task(out_pin[2], neo_driver[2]);
+            blinky_task(2, neo_driver[2] );
+        }
+        [[combine]] par {
+            neopixel_led_task(out_pin[3], neo_driver[3]);
+            blinky_task(3, neo_driver[3] );
+        }
+        [[combine]] par {
+            neopixel_led_task(out_pin[4], neo_driver[4]);
+            blinky_task(4, neo_driver[4] );
+        }
+        [[combine]] par {
+            neopixel_led_task(out_pin[5], neo_driver[5]);
+            blinky_task(5, neo_driver[5] );
+        }
+        [[combine]] par {
+            neopixel_led_task(out_pin[6], neo_driver[6]);
+            blinky_task(6, neo_driver[6] );
+        }
+        [[combine]] par {
+            neopixel_led_task(out_pin[7], neo_driver[7]);
+            blinky_task(7, neo_driver[7] );
+        }
     }
 
     return 0;
