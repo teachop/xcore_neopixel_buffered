@@ -117,9 +117,10 @@ void blinky_task(uint32_t strip, interface neopixel_if client dvr) {
         select {
         case tick when timerafter(next_pass) :> void:
             next_pass += (LED_WRITE_TIME + strip*1000)*100;
+            outer++;
             // cycle of all colors on wheel
             for ( uint32_t pixel=0; pixel<LEDS; ++pixel) {
-                {r,g,b} = wheel(( (pixel*256/LEDS) + outer++) & 255);
+                {r,g,b} = wheel(( (pixel*256/LEDS) + outer) & 255);
                 dvr.setPixelColorRGB(pixel, r,g,b);
             }
             // write to the strip
