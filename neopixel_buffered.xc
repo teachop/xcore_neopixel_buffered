@@ -17,9 +17,9 @@
 // neopixel driver interface sort of like Adafruit library
 interface neopixel_if {
     void show(void);
-    void setPixelColor(uint32_t index, uint32_t color);
-    void setPixelColorRGB(uint32_t index, uint8_t red, uint8_t green, uint8_t blue);
-    //void setBrightness(uint8_t bright);
+    void setPixelColor(uint32_t pixel, uint32_t color);
+    void setPixelColorRGB(uint32_t pixel, uint8_t red, uint8_t green, uint8_t blue);
+    void setBrightness(uint8_t bright);
 };
 
 
@@ -28,36 +28,48 @@ interface neopixel_if {
 //
 [[combinable]]
 void neopixel_led_task(port neo, interface neopixel_if server dvr) {
-    uint32_t colors[LEDS];
+    uint8_t colors[LEDS*3];
     const uint32_t delay_third = 42;
-    uint32_t delay_count;
-    uint32_t bit;
+    uint8_t brightness=0;
 
     while( 1 ) {
         select {
-        case dvr.setPixelColor(uint32_t index, uint32_t color):
-            if ( LEDS > index ) {
-                colors[index] = color;
+        case dvr.setBrightness(uint8_t bright):
+            brightness = bright;
+            break;
+        case dvr.setPixelColor(uint32_t pixel, uint32_t color):
+            if ( LEDS > pixel ) {
+                uint32_t index = 3*pixel;
+                colors[index++] = color>>8;//g
+                colors[index++] = color>>16;//r
+                colors[index]   = color;//b
             }
             break;
-        case dvr.setPixelColorRGB(uint32_t index, uint8_t r, uint8_t g, uint8_t b):
-            if ( LEDS > index ) {
-                colors[index] = ((uint32_t)g << 16) | ((uint32_t)r <<  8) | b;
+        case dvr.setPixelColorRGB(uint32_t pixel, uint8_t r, uint8_t g, uint8_t b):
+            if ( LEDS > pixel ) {
+                uint32_t index = 3*pixel;
+                colors[index++] = g;
+                colors[index++] = r;
+                colors[index]   = b;
             }
             break;
         case dvr.show():
-            // beginning of strip, resync counter
+            // beginning of strip, sync counter
+            uint32_t delay_count, bit;
             neo <: 0 @ delay_count;
-            delay_count += delay_third;
-            for ( uint32_t pixel=0; pixel<LEDS; ++pixel ) {
-                uint32_t color_shift = colors[pixel];
-                uint32_t bit_count = 24;
+            #pragma unsafe arrays
+            for (uint32_t index=0; index<sizeof(colors); ++index) {
+                uint32_t color_shift = colors[index];
+                uint32_t bit_count = 8;
                 while (bit_count--) {
                     // output low->high transition
                     delay_count += delay_third;
                     neo @ delay_count <: 1;
                     // output high->data transition
-                    bit = (color_shift & 0x800000)? 1 : 0;
+                    if ( brightness && (7==bit_count) ) {
+                        color_shift = (brightness*color_shift)>>8;
+                    }
+                    bit = (color_shift & 0x80)? 1 : 0;
                     color_shift <<=1;
                     delay_count += delay_third;
                     neo @ delay_count <: bit;
@@ -91,7 +103,7 @@ void neopixel_led_task(port neo, interface neopixel_if server dvr) {
 
 
 // ---------------------------------------------------------------
-// blinky_task - rainbow cycle pattern from pjrc and / or adafruit
+// blinky_task - rainbow cycle pattern from adafruit strip test
 //
 [[combinable]]
 void blinky_task(uint32_t strip, interface neopixel_if client dvr) {
@@ -105,11 +117,10 @@ void blinky_task(uint32_t strip, interface neopixel_if client dvr) {
         select {
         case tick when timerafter(next_pass) :> void:
             next_pass += (LED_WRITE_TIME + strip*1000)*100;
-            outer++;
             // cycle of all colors on wheel
-            for ( uint32_t index=0; index<LEDS; ++index) {
-                {r,g,b} = wheel(( (index*256/LEDS) + outer) & 255);
-                dvr.setPixelColorRGB(index, r,g,b);
+            for ( uint32_t pixel=0; pixel<LEDS; ++pixel) {
+                {r,g,b} = wheel(( (pixel*256/LEDS) + outer++) & 255);
+                dvr.setPixelColorRGB(pixel, r,g,b);
             }
             // write to the strip
             dvr.show();
