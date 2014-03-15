@@ -2,6 +2,8 @@
 
 This test/learning project controls Adafruit NeoPixel strips of fairly arbitrary length with a rolling rainbow pattern.  The multiple strips are individually timed, displaying LED patterns each at their own speed.  (The point is to learn about xCore moreso than make LED patterns).
 
+**NOTE:**  Putting the driver and application (driver task / generator task) into their own source files makes program memory larger.  Need to research - perhaps combinable tasks are optimized when they are in the same compilation unit in a way not possible when they are linked together?
+
 To decouple creation of pixel color data from the precise serial output timing needed, strip-sized buffers are first filled by generator tasks before then being written out by driver tasks.  Eight copies of the generator task output to 8 copies of the strip driver task to control 8 strips.  The 8 task pairs run concurrently without synchronization on the 8 CPU cores.  Which is pretty cool.
 
 In order to pair the generator/driver tasks up correctly on the 8 cores of the startKIT CPU, the task functions are marked as "combinable".  [Combinable](https://www.xmos.com/en/published/how-define-and-use-combinable-function?secure=1) is a special XMOS xC attribute that allows multiple tasks to run on a single logical core.  The par statements in main() run the tasks, combining them as needed.
