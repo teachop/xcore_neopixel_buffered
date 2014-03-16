@@ -1,4 +1,4 @@
-##A XCore Driver for Adafruit NeoPixel Strips on XMOS startKIT
+##XCore Driver for Adafruit NeoPixel Strips on XMOS startKIT
 
 ###Introduction
 This project contains a general purpose frame buffered XMOS Module-style driver **neopixel** for controlling Adafruit NeoPixel strips.

@@ -4,13 +4,9 @@
 //
 // On 8 NeoPixel strips display independent strand test patterns
 //
-// Note:  Driver API is intended to be famaliar to users of the
+// Note:  Driver API is intended to be famaliar to
 // Adafruit NeoPixel Library for Arduino located here:
-//
-// https://github.com/adafruit/Adafruit_NeoPixel
-//
-// However, being in XC for a multi-core device, the API does not
-// (and should not) attempt to duplicate the Arduino version.
+//      https://github.com/adafruit/Adafruit_NeoPixel
 //
 
 #include <xs1.h>
@@ -37,14 +33,17 @@
 
 
 // ---------------------------------------------------------------
-// blinky_task - rainbow cycle pattern from adafruit strip test
+// blinky_task - cycle through patterns from adafruit strip test
 //
 [[combinable]]
 void blinky_task(uint32_t taskID, interface neopixel_if client strip) {
+    const uint32_t wipe[4] = {0xff0000,0x00ff00,0x0000ff,0xffffff};
     uint8_t outer = 0;
+    uint8_t inner = 0;
     uint8_t r,g,b;
+    uint32_t pattern_counter = 0;
     uint32_t length = strip.numPixels();
-    uint32_t speed = ((30*length + (length>>2) + 51) + taskID*1000)*100;
+    uint32_t speed = ((30*length + (length>>2) + 51) + taskID*500)*100;
     timer tick;
     uint32_t next_pass;
     tick :> next_pass;
@@ -52,12 +51,37 @@ void blinky_task(uint32_t taskID, interface neopixel_if client strip) {
     while (1) {
         select {
         case tick when timerafter(next_pass) :> void:
-            next_pass += speed;
-            outer++;
-            // cycle of all colors on wheel
-            for ( uint32_t pixel=0; pixel<length; ++pixel) {
-                {r,g,b} = wheel(( (pixel*256/length) + outer) & 255);
-                strip.setPixelColorRGB(pixel, r,g,b);
+            if ( 5 > pattern_counter ) {
+                next_pass += speed;
+                // ------- rainbow cycle --------
+                outer++;
+                for ( uint32_t pixel=0; pixel<length; ++pixel) {
+                    {r,g,b} = wheel(( (pixel*256/length) + outer) & 255);
+                    strip.setPixelColorRGB(pixel, r,g,b);
+                }
+                if ( !outer ) {
+                    pattern_counter++;
+                }
+            } else if ( 20 > pattern_counter ) {
+                next_pass += speed;
+                // ------- color wipe --------
+                strip.setPixelColor(outer, wipe[3&pattern_counter]);
+                if ( ++outer >= length ) {
+                    inner = outer = 0;
+                    pattern_counter++;
+                }
+            } else {
+                next_pass += speed*12;
+                // ------- theater chase --------
+                for (uint32_t pixel=0; pixel<(length-2); pixel+=3) {
+                  {r,g,b} = wheel( ((pixel+outer)<<1) & 255);
+                  strip.setPixelColorRGB(pixel+inner, r,g,b);
+                  strip.setPixelColor(inner?(pixel+inner-1):(pixel+2), 0);
+                }
+                inner = (2>inner)? inner+1 : 0;
+                if ( !++outer ) {
+                    pattern_counter = 0;
+                }
             }
             // write to the strip
             strip.show();
@@ -68,7 +92,7 @@ void blinky_task(uint32_t taskID, interface neopixel_if client strip) {
 
 
 // ---------------------------------------------------------
-// main - xCore startKIT NeoPixel blinky test
+// main - xCore startKIT NeoPixel strand test
 //
 port out_pin[8] = {
     // j7.1, j7.2, j7.3, j7.4, j7.23, j7.21, j7.20, j7.19
