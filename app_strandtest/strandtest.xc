@@ -1,5 +1,5 @@
 //---------------------------------------------------------
-// Buffered NeoPixel driver test application
+// Adafruit NeoPixel driver test application
 // by teachop
 //
 
