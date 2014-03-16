@@ -1,6 +1,16 @@
-//---------------------------------------------------------
-// Adafruit NeoPixel driver test application
+//-----------------------------------------------------------
+// XCore Driver for Adafruit NeoPixel - test application
 // by teachop
+//
+// On 8 NeoPixel strips display independent strand test patterns
+//
+// Note:  Driver API is intended to be famaliar to users of the
+// Adafruit NeoPixel Library for Arduino located here:
+//
+// https://github.com/adafruit/Adafruit_NeoPixel
+//
+// However, being in XC for a multi-core device, the API does not
+// (and should not) attempt to duplicate the Arduino version.
 //
 
 #include <xs1.h>

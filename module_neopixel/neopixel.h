@@ -6,7 +6,7 @@
 #ifndef __NEOPIXEL_H__
 #define __NEOPIXEL_H__
 
-#define LEDS 60
+#include "strip_config.h"
 
 // neopixel driver interface, Adafruit library-like
 interface neopixel_if {
