@@ -4,9 +4,9 @@
 //
 // On 8 NeoPixel strips display independent strand test patterns
 //
-// Note:  Driver API is intended to be famaliar to
-// Adafruit NeoPixel Library for Arduino located here:
-//      https://github.com/adafruit/Adafruit_NeoPixel
+// Note:  The neopixel module API is intended to be familiar
+// to Adafruit NeoPixel Library users.
+// (https://github.com/adafruit/Adafruit_NeoPixel)
 //
 
 #include <xs1.h>
@@ -62,12 +62,19 @@ void blinky_task(uint32_t taskID, interface neopixel_if client strip) {
                 if ( !outer ) {
                     pattern_counter++;
                 }
-            } else if ( 20 > pattern_counter ) {
+            } else if ( 16 > pattern_counter ) {
                 next_pass += speed;
                 // ------- color wipe --------
-                strip.setPixelColor(outer, wipe[3&pattern_counter]);
+                strip.setPixelColor((pattern_counter&1)?outer:(length-1-outer), wipe[3&pattern_counter]);
                 if ( ++outer >= length ) {
                     inner = outer = 0;
+                    pattern_counter++;
+                }
+            } else if ( 18 > pattern_counter ) {
+                next_pass += speed;
+                // ------- brightness --------
+                strip.setBrightness((pattern_counter&1)?outer:(255-outer));
+                if ( !++outer ) {
                     pattern_counter++;
                 }
             } else {
