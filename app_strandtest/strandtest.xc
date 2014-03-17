@@ -33,10 +33,10 @@
 
 
 // ---------------------------------------------------------------
-// blinky_task - cycle through patterns from adafruit strip test
+// pattern_task - cycle through patterns like Adafruit strandtest
 //
 [[combinable]]
-void blinky_task(uint32_t taskID, interface neopixel_if client strip) {
+void pattern_task(uint32_t taskID, interface neopixel_if client strip) {
     const uint32_t wipe[4] = {0xff0000,0x00ff00,0x0000ff,0xffffff};
     uint8_t outer = 0;
     uint8_t inner = 0;
@@ -64,7 +64,7 @@ void blinky_task(uint32_t taskID, interface neopixel_if client strip) {
                 }
             } else if ( 16 > pattern_counter ) {
                 next_pass += speed;
-                // ------- color wipe --------
+                // ------- color wipes --------
                 strip.setPixelColor((pattern_counter&1)?outer:(length-1-outer), wipe[3&pattern_counter]);
                 if ( ++outer >= length ) {
                     inner = outer = 0;
@@ -72,7 +72,7 @@ void blinky_task(uint32_t taskID, interface neopixel_if client strip) {
                 }
             } else if ( 18 > pattern_counter ) {
                 next_pass += speed;
-                // ------- brightness --------
+                // ------- brightness test --------
                 strip.setBrightness((pattern_counter&1)?outer:(255-outer));
                 if ( !++outer ) {
                     pattern_counter++;
@@ -113,35 +113,35 @@ int main() {
         // 16 tasks, 8 cores, drive 8 led strips with differing patterns
         [[combine]] par {
             neopixel_task(out_pin[0], neopixel_strip[0]);
-            blinky_task(0, neopixel_strip[0] );
+            pattern_task(0, neopixel_strip[0] );
         }
         [[combine]] par {
             neopixel_task(out_pin[1], neopixel_strip[1]);
-            blinky_task(1, neopixel_strip[1] );
+            pattern_task(1, neopixel_strip[1] );
         }
         [[combine]] par {
             neopixel_task(out_pin[2], neopixel_strip[2]);
-            blinky_task(2, neopixel_strip[2] );
+            pattern_task(2, neopixel_strip[2] );
         }
         [[combine]] par {
             neopixel_task(out_pin[3], neopixel_strip[3]);
-            blinky_task(3, neopixel_strip[3] );
+            pattern_task(3, neopixel_strip[3] );
         }
         [[combine]] par {
             neopixel_task(out_pin[4], neopixel_strip[4]);
-            blinky_task(4, neopixel_strip[4] );
+            pattern_task(4, neopixel_strip[4] );
         }
         [[combine]] par {
             neopixel_task(out_pin[5], neopixel_strip[5]);
-            blinky_task(5, neopixel_strip[5] );
+            pattern_task(5, neopixel_strip[5] );
         }
         [[combine]] par {
             neopixel_task(out_pin[6], neopixel_strip[6]);
-            blinky_task(6, neopixel_strip[6] );
+            pattern_task(6, neopixel_strip[6] );
         }
         [[combine]] par {
             neopixel_task(out_pin[7], neopixel_strip[7]);
-            blinky_task(7, neopixel_strip[7] );
+            pattern_task(7, neopixel_strip[7] );
         }
     }
 
