@@ -17,6 +17,9 @@ void neopixel_task(port neo, interface neopixel_if server dvr) {
     uint8_t colors[LEDS*3];
     const uint32_t delay_third = 42;
     uint8_t brightness=0;
+    for ( uint32_t loop=0; loop<(LEDS*3); ++loop ) {
+        colors[loop] = 0;
+    }
 
     while( 1 ) {
         select {
