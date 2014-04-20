@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "neopixel.h"
 
+// use ws2812b timing if not overridden
 #ifndef NEO_P1
 #define NEO_P1 42
 #endif

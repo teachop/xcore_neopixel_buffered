@@ -9,7 +9,10 @@
 // neopixel strip length
 #define LEDS 60
 
-// timing adjustment, 10 nanosecond increments
+// optional timing adjustment, 10 nanosecond increments
+// P1 is the initial high time
+// P2 is the middle high/low data indicating time
+// P3 is the final low time
 //#define NEO_P1 42
 //#define NEO_P2 38
 //#define NEO_P3 46
