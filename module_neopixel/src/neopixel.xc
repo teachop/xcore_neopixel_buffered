@@ -7,6 +7,16 @@
 #include <stdint.h>
 #include "neopixel.h"
 
+#ifndef NEO_P1
+#define NEO_P1 42
+#endif
+#ifndef NEO_P2
+#define NEO_P2 42
+#endif
+#ifndef NEO_P3
+#define NEO_P3 42
+#endif
+
 
 // ---------------------------------------------------------
 // neopixel_task - output driver for one neopixel strip
@@ -15,7 +25,9 @@
 void neopixel_task(port neo, interface neopixel_if server dvr) {
     uint32_t length = LEDS;
     uint8_t colors[LEDS*3];
-    const uint32_t delay_third = 42;
+    const uint32_t delay_first  = NEO_P1;
+    const uint32_t delay_second = NEO_P2;
+    const uint32_t delay_third  = NEO_P3;
     uint8_t brightness=0;
     for ( uint32_t loop=0; loop<(LEDS*3); ++loop ) {
         colors[loop] = 0;
@@ -74,10 +86,10 @@ void neopixel_task(port neo, interface neopixel_if server dvr) {
                     }
                     bit = (color_shift & 0x80)? 1 : 0;
                     color_shift <<=1;
-                    delay_count += delay_third;
+                    delay_count += delay_first;
                     neo @ delay_count <: bit;
                     // output data->low transition
-                    delay_count += delay_third;
+                    delay_count += delay_second;
                     neo @ delay_count <: 0;
                 }
             }

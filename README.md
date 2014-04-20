@@ -11,6 +11,8 @@ For additional information on the NeoPixel LED strips see [here](http://learn.ad
 
 Development and testing of the driver was done on the low cost [XMOS startKIT](http://www.xmos.com/en/startkit).
 
+**NeoPixel timing comments:** There are different integrated circuits at the heart of various NeoPixel brand LED products.  These include WS2811, WS2812, WS2812B, and maybe more.  Timings are not identical for the different parts.  This driver is optimized for the WS2812B, and has been observed to "work" on the others.  If it is required to adjust  timing, three pulse phase constants can be modified in strip_config.h.
+
 ###Operation
 To decouple creation of pixel color data from the precise serial output timing needed, strip-sized color data is first loaded by generator tasks (in strandtest) into the driver buffers before then being spooled out by driver tasks (neopixel module).  Eight copies of the generator task output to 8 copies of the strip driver task to control 8 strips.  The 8 task pairs run concurrently without synchronization on the 8 CPU cores.  Which is pretty cool!
 
