@@ -7,15 +7,15 @@
 #include <stdint.h>
 #include "neopixel.h"
 
-// use ws2812b timing if not overridden
+// use uberguide (ws2812b) timing if not overridden
 #ifndef NEO_P1
-#define NEO_P1 42
+#define NEO_P1 40
 #endif
 #ifndef NEO_P2
-#define NEO_P2 42
+#define NEO_P2 40
 #endif
 #ifndef NEO_P3
-#define NEO_P3 42
+#define NEO_P3 45
 #endif
 
 
