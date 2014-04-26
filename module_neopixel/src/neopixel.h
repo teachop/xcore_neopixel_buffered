@@ -6,7 +6,13 @@
 #ifndef __NEOPIXEL_H__
 #define __NEOPIXEL_H__
 
-#include "strip_config.h"
+// strip buffering
+#define PIXELS(x) ((x)*3)
+
+// ws2812b timing per uberguide, 10 nanosecond increments
+#define NEO_P1 40 // initial high time
+#define NEO_P2 40 // middle high/low data indicating time
+#define NEO_P3 45 // final low time
 
 // neopixel driver interface, Adafruit library-like
 interface neopixel_if {
@@ -33,7 +39,9 @@ interface neopixel_if {
     uint32_t numPixels(void);
 };
 
-[[combinable]] void neopixel_task(port neo, interface neopixel_if server dvr);
+[[combinable]] void neopixel_task(port neo,
+        static const uint32_t buf_size,   // in bytes, 3 times the pixel count
+        interface neopixel_if server dvr);
 
 
 #endif // __NEOPIXEL_H__

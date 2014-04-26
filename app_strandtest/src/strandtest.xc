@@ -112,35 +112,35 @@ int main() {
     par {
         // 16 tasks, 8 cores, drive 8 led strips with differing patterns
         [[combine]] par {
-            neopixel_task(out_pin[0], neopixel_strip[0]);
+            neopixel_task(out_pin[0], PIXELS(60), neopixel_strip[0]);
             pattern_task(0, neopixel_strip[0] );
         }
         [[combine]] par {
-            neopixel_task(out_pin[1], neopixel_strip[1]);
+            neopixel_task(out_pin[1], PIXELS(60), neopixel_strip[1]);
             pattern_task(1, neopixel_strip[1] );
         }
         [[combine]] par {
-            neopixel_task(out_pin[2], neopixel_strip[2]);
+            neopixel_task(out_pin[2], PIXELS(60), neopixel_strip[2]);
             pattern_task(2, neopixel_strip[2] );
         }
         [[combine]] par {
-            neopixel_task(out_pin[3], neopixel_strip[3]);
+            neopixel_task(out_pin[3], PIXELS(60), neopixel_strip[3]);
             pattern_task(3, neopixel_strip[3] );
         }
         [[combine]] par {
-            neopixel_task(out_pin[4], neopixel_strip[4]);
+            neopixel_task(out_pin[4], PIXELS(60), neopixel_strip[4]);
             pattern_task(4, neopixel_strip[4] );
         }
         [[combine]] par {
-            neopixel_task(out_pin[5], neopixel_strip[5]);
+            neopixel_task(out_pin[5], PIXELS(60), neopixel_strip[5]);
             pattern_task(5, neopixel_strip[5] );
         }
         [[combine]] par {
-            neopixel_task(out_pin[6], neopixel_strip[6]);
+            neopixel_task(out_pin[6], PIXELS(60), neopixel_strip[6]);
             pattern_task(6, neopixel_strip[6] );
         }
         [[combine]] par {
-            neopixel_task(out_pin[7], neopixel_strip[7]);
+            neopixel_task(out_pin[7], PIXELS(60), neopixel_strip[7]);
             pattern_task(7, neopixel_strip[7] );
         }
     }

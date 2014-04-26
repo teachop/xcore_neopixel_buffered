@@ -35,7 +35,7 @@ In order to allow the option of pairing up of application/driver tasks up on cor
 ###Notes
 **API** The driver interface API was designed to be familiar to users of the [Adafruit NeoPixel Library for Arduino](https://github.com/adafruit/Adafruit_NeoPixel).  Because this driver is written in xC, using the powerful multi-core XMOS XCore features, it is not exactly the same.  The interface is given in the neopixel.h file.
 
-**Timing** There are different integrated circuits at the heart of various NeoPixel brand LED products.  These include WS2811, WS2812, WS2812B, and maybe more.  Timings are not identical for the different parts.  This driver is optimized for the WS2812B, and has been observed to "work" on the others.  If it is required to adjust  timing, three pulse phase constants can be modified in strip_config.h.
+**Timing** There are different integrated circuits at the heart of various NeoPixel brand LED products.  These include WS2811, WS2812, WS2812B, and maybe more.  Timings are not identical for the different parts.  This driver is optimized for the WS2812B, and has been observed to "work" on the others.  If it is required to adjust  timing, three pulse phase constants can be modified in neopixel.h.
 
 **More Code** There is another example project using this NeoPixel driver together with an ultrasonic range finder driver for XCore located [here](https://github.com/teachop/xcore_ping).
 

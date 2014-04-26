@@ -7,30 +7,20 @@
 #include <stdint.h>
 #include "neopixel.h"
 
-// use uberguide (ws2812b) timing if not overridden
-#ifndef NEO_P1
-#define NEO_P1 40
-#endif
-#ifndef NEO_P2
-#define NEO_P2 40
-#endif
-#ifndef NEO_P3
-#define NEO_P3 45
-#endif
-
 
 // ---------------------------------------------------------
 // neopixel_task - output driver for one neopixel strip
 //
 [[combinable]]
-void neopixel_task(port neo, interface neopixel_if server dvr) {
-    uint32_t length = LEDS;
-    uint8_t colors[LEDS*3];
+void neopixel_task(port neo, static const uint32_t buf_size,
+                   interface neopixel_if server dvr) {
+    const uint32_t length = buf_size/3;
+    uint8_t colors[buf_size];
     const uint32_t delay_first  = NEO_P1;
     const uint32_t delay_second = NEO_P2;
     const uint32_t delay_third  = NEO_P3;
     uint8_t brightness=0;
-    for ( uint32_t loop=0; loop<(LEDS*3); ++loop ) {
+    for ( uint32_t loop=0; loop<(buf_size); ++loop ) {
         colors[loop] = 0;
     }
 
@@ -74,7 +64,7 @@ void neopixel_task(port neo, interface neopixel_if server dvr) {
             uint32_t delay_count, bit;
             neo <: 0 @ delay_count;
             #pragma unsafe arrays
-            for (uint32_t index=0; index<sizeof(colors); ++index) {
+            for (uint32_t index=0; index<buf_size; ++index) {
                 uint32_t color_shift = colors[index];
                 uint32_t bit_count = 8;
                 while (bit_count--) {
