@@ -13,7 +13,7 @@
 //
 [[combinable]]
 void neopixel_task(port neo, static const uint32_t buf_size,
-                   interface neopixel_if server dvr) {
+                   uint32_t order, interface neopixel_if server dvr) {
     const uint32_t length = buf_size/3;
     uint8_t colors[buf_size];
     const uint32_t delay_first  = NEO_P1;
@@ -38,7 +38,9 @@ void neopixel_task(port neo, static const uint32_t buf_size,
         case dvr.getPixelColor(uint32_t pixel) -> uint32_t return_val:
             if ( length > pixel ) {
                 uint32_t index = 3*pixel;
-                return_val = ((uint32_t)colors[index+1] << 16) | ((uint32_t)colors[index] <<  8) | colors[index+2];
+                return_val  = (uint32_t)colors[index++] << (order?16:8);//r:g
+                return_val |= (uint32_t)colors[index++] << (order?8:16);//g:r
+                return_val |= colors[index];
             } else {
                 return_val = 0;
             }
@@ -46,16 +48,16 @@ void neopixel_task(port neo, static const uint32_t buf_size,
         case dvr.setPixelColor(uint32_t pixel, uint32_t color):
             if ( length > pixel ) {
                 uint32_t index = 3*pixel;
-                colors[index++] = color>>8;//g
-                colors[index++] = color>>16;//r
+                colors[index++] = color>>(order?16:8);//r:g
+                colors[index++] = color>>(order?8:16);//g:r
                 colors[index]   = color;//b
             }
             break;
         case dvr.setPixelColorRGB(uint32_t pixel, uint8_t r, uint8_t g, uint8_t b):
             if ( length > pixel ) {
                 uint32_t index = 3*pixel;
-                colors[index++] = g;
-                colors[index++] = r;
+                colors[index++] = (order?r:g);
+                colors[index++] = (order?g:r);
                 colors[index]   = b;
             }
             break;

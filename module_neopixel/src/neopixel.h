@@ -14,6 +14,10 @@
 #define NEO_P2 40 // middle high/low data indicating time
 #define NEO_P3 45 // final low time
 
+// pixel wiring does vary
+#define NEO_GRB 0
+#define NEO_RGB 1
+
 // neopixel driver interface, Adafruit library-like
 interface neopixel_if {
     // update strip from driver internal buffer
@@ -41,6 +45,7 @@ interface neopixel_if {
 
 [[combinable]] void neopixel_task(port neo,
         static const uint32_t buf_size,   // in bytes, 3 times the pixel count
+        uint32_t order,
         interface neopixel_if server dvr);
 
 
