@@ -80,10 +80,10 @@ void pattern_task(uint32_t taskID, interface neopixel_if client strip) {
             } else {
                 next_pass += speed*12;
                 // ------- theater chase --------
-                for (uint32_t pixel=0; pixel<(length-2); pixel+=3) {
-                  {r,g,b} = wheel( ((pixel+outer)<<1) & 255);
-                  strip.setPixelColorRGB(pixel+inner, r,g,b);
-                  strip.setPixelColor(inner?(pixel+inner-1):(pixel+2), 0);
+                for (uint32_t pixel=0; pixel<length; pixel++) {
+                    if ( (pixel+inner)%3 ) r=g=b = 0;
+                    else {r,g,b} = wheel( ((pixel+outer)<<1) & 255);
+                    strip.setPixelColorRGB(pixel, r,g,b);
                 }
                 inner = (2>inner)? inner+1 : 0;
                 if ( !++outer ) {
