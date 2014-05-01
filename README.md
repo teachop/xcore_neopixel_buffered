@@ -6,7 +6,7 @@ This project provides a general purpose frame buffered XCore driver **module_neo
 It also includes an example application similar to the Adafruit strandtest but written in xC.  This program is able to control 8 NeoPixel strips from an XMOS startKIT.  The multiple strips are individually timed, displaying LED patterns each at their own speed.
 
 ###Driver API
-An application task communicates with the driver by using its [interface](https://www.xmos.com/en/published/how-communicate-between-tasks-interfaces?secure=1), which defines these transactions:
+An application task communicates with the driver by using its [interface](https://www.xmos.com/support/documentation/xtools?subcategory=xTIMEcomposer&component=17653&page=23#xc-prog-guide-interface-connection), which defines these transactions:
 
 - **setPixelColor(pixel, color)** Write a pixel in the driver internal buffer with packed RGB 8:8:8 value.  Use show() to actually update the LEDs.
 
@@ -30,7 +30,7 @@ The driver is implemented as a task (see the neopixel module).  In the example g
 This driver provides in memory a frame buffer, allowing the application to build and modify a complete image of the strip before displaying it on the LED strips.  An xCore project that can generate and display unbuffered (in other words without needing the large RAM frame buffers) NeoPixel data full-speed on-the-fly is [here.](https://github.com/teachop/xcore_neopixel_leds)
 
 ###Driver Task Handling
-In order to allow the option of pairing up of application/driver tasks up on cores of the startKIT CPU, the task functions are marked as **combinable**.  [Combinable](https://www.xmos.com/en/published/how-define-and-use-combinable-function?secure=1) is an XMOS xC function attribute that allows multiple tasks to run on a single logical core.  In the example the **par()** statements in **main()** start the 16 tasks, combining them in pairs to execute together on each of the cores.  Use of combine is optional.
+In order to allow the option of pairing up of application/driver tasks up on cores of the startKIT CPU, the task functions are marked as **combinable**.  [Combinable](https://www.xmos.com/support/documentation/xtools?subcategory=xTIMEcomposer&component=17653&page=23#xc-prog-guide-combinable-functions) is an XMOS xC function attribute that allows multiple tasks to run on a single logical core.  In the example the **par()** statements in **main()** start the 16 tasks, combining them in pairs to execute together on each of the cores.  Use of combine is optional.
 
 ###Notes
 **API** The driver interface API was designed to be familiar to users of the [Adafruit NeoPixel Library for Arduino](https://github.com/adafruit/Adafruit_NeoPixel).  Because this driver is written in xC, using the powerful multi-core XMOS XCore features, it is not exactly the same.  The interface is given in the neopixel.h file.
