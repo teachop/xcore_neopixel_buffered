@@ -18,6 +18,8 @@ An application task communicates with the driver by using its [interface](https:
 
 - **getPixelColor(pixel)** Get from the driver buffer the RGB 8:8:8 packed color for a given pixel.
 
+- **getEstimate()** Get an estimate of total milliamps given buffer contents and brightness setting.  This presently simply assumes 20 milliamps max per LED and a linear PWM relationship to current.
+
 - **Color(r, g, b)** Utility function to generate packed value from individual 8 bit RGB.
 
 - **numPixels()** Get length of strip in pixels.
