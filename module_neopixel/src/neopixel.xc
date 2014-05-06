@@ -45,7 +45,7 @@ void neopixel_task(port neo, static const uint32_t buf_size,
                 return_val = (brightness*return_val)>>8;
             }
             // scale to mA, assuming 20 max per
-            return_val = (4*return_val)/51;
+            return_val = (4*return_val)/55;
             break;
         case dvr.getPixelColor(uint32_t pixel) -> uint32_t return_val:
             if ( length > pixel ) {
