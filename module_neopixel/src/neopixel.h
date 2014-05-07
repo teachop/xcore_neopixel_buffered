@@ -37,7 +37,7 @@ interface neopixel_if {
     uint32_t getPixelColor(uint32_t pixel);
 
     // get an estimate of milliamps given buffer * brightness
-    uint32_t getEstimate(void);
+    uint32_t getEstimate(uint32_t scale);
 
     // utility function to generate packed value from individual 8 bit RGB
     uint32_t Color(uint8_t r, uint8_t g, uint8_t b);

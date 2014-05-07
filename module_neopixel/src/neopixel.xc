@@ -35,7 +35,7 @@ void neopixel_task(port neo, static const uint32_t buf_size,
         case dvr.setBrightness(uint8_t bright):
             brightness = bright+1;
             break;
-        case dvr.getEstimate() -> uint32_t return_val:
+        case dvr.getEstimate(uint32_t scale) -> uint32_t return_val:
             for ( uint32_t index =return_val =0; index<buf_size; ++index ) {
                 // add all the pwm values assuming linear relationship
                 return_val += colors[index];
@@ -44,8 +44,9 @@ void neopixel_task(port neo, static const uint32_t buf_size,
                 // scale down by brightness setting if used
                 return_val = (brightness*return_val)>>8;
             }
-            // scale to mA, assuming 20 max per
-            return_val = (4*return_val)/55;
+            // scale to mA, assuming 17 max per
+            uint32_t div = (0==scale)? 52 : scale;
+            return_val = (4*return_val)/div;
             break;
         case dvr.getPixelColor(uint32_t pixel) -> uint32_t return_val:
             if ( length > pixel ) {
